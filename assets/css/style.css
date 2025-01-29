@@ -1,21 +1,51 @@
+/* fonts */
+@import url("https://fonts.googleapis.com/css2?family=Alegreya:wght@400;700&family=Nunito:wght@400;700&display=swap");
+
 body {
-  background-color: #f4f4f4;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  margin: 0;
+  font-family: Nunito, sans-serif;
 }
 
-.card {
-  width: 100%;
-  max-width: 500px;
-}
-#typing-test {
-  text-align: center;
-  margin-top: 50px;
+h1 {
+  font-family: Alegreya, serif;
 }
 
-#results {
-  margin-top: 20px;
+header {
+  background-color: #ff8400;
+  color: white;
+}
+
+/* buttons */
+
+.btn-outline-orange {
+  border: 2px solid #ff8400;
+  transition: color 0.3s ease-in-out, background-color 0.3s ease-in-out;
+  margin: 5px;
+}
+
+.btn-outline-orange:hover {
+  background-color: #ff8400;
+  color: #fff;
+}
+
+/* results-area */
+
+#results-area {
+  box-shadow: 0 0 10px #ff8400;
+  border-radius: 10px;
+  padding: 20px;
+}
+
+#results-area p {
+  font-size: 1.1rem;
+  margin-bottom: 5px;
+}
+
+/* typing feedback */
+
+.correct {
+  color: blue;
+}
+
+.incorrect {
+  color: red;
 }
