@@ -1,96 +1,138 @@
-const quizContainer = document.getElementById('quiz');
-const button = document.getElementById('button');
+document.addEventListener("DOMContentLoaded", function () {
+  const easyTexts = [
+    "The cat sat on the mat.",
+    "A quick brown fox jumps over the lazy dog.",
+    "She sells seashells by the seashore.",
+  ];
 
-const quizQuestions = [
-    {
-        question: "What does HTML stand for?",
-        answers: {
-            a: "Hyper Text Markup Language",
-            b: "Home Tool Markup Language",
-            c: "Hyperlinks and Text Markup Language"
-        },
-        correctAnswer: "a"
-    },
-    {
-        question: "What does CSS stand for?",
-        answers: {
-            a: "Creative Style Sheets",
-            b: "Cascading Style Sheets",
-            c: "Computer Style Sheets"
-        },
-        correctAnswer: "b"
-    },
-    {
-        question: "What does JS stand for in web development?",
-        answers: {
-            a: "JavaScript",
-            b: "JavaSource",
-            c: "JustScript"
-        },
-        correctAnswer: "a"
-    }
-];
+  const mediumTexts = [
+    "To be or not to be, that is the question.",
+    "All that glitters is not gold.",
+    "A journey of a thousand miles begins with a single step.",
+  ];
 
-/**
- * Builds the quiz by generating HTML for each question and its answers.
- */
-function buildQuiz() {
-    let output = '';
+  const hardTexts = [
+    "It was the best of times, it was the worst of times.",
+    "In the beginning God created the heavens and the earth.",
+    "The only thing we have to fear is fear itself.",
+  ];
 
-    for (let questionNumber = 0; questionNumber < quizQuestions.length; questionNumber++) {
-        let currentQuestion = quizQuestions[questionNumber];
-        let answers = '';
+  const difficultySelect = document.getElementById("difficulty");
+  const sampleTextDiv = document.getElementById("sample-text");
+  const timeDisplay = document.getElementById("time");
+  const userInput = document.getElementById("user-input");
+  const levelDisplay = document.getElementById("level");
+  const wpmDisplay = document.getElementById("wpm");
+  const retryButton = document.getElementById("retry-btn");
 
-        for (let letter in currentQuestion.answers) {
-            answers += `
-                <label>
-                    <input type="radio" name="question${questionNumber}" value="${letter}">
-                    ${letter} : ${currentQuestion.answers[letter]}
-                </label><br>
-            `;
-        }
+  let startTime;
+  let endTime;
+  let testStarted = false;
 
-        output += '<h2 class="h5 mt-4">' + currentQuestion.question + '</h2>';
-        output += '<div class="answers">' + answers + '</div>';
+  function getRandomText(textArray) {
+    const randomIndex = Math.floor(Math.random() * textArray.length);
+    return textArray[randomIndex];
+  }
+
+  function updateSampleText() {
+    let selectedDifficulty = difficultySelect.value;
+    let selectedText;
+
+    if (selectedDifficulty === "easy") {
+      selectedText = getRandomText(easyTexts);
+    } else if (selectedDifficulty === "medium") {
+      selectedText = getRandomText(mediumTexts);
+    } else if (selectedDifficulty === "hard") {
+      selectedText = getRandomText(hardTexts);
     }
 
-    quizContainer.innerHTML = output;
-}
+    sampleTextDiv.textContent = selectedText;
+  }
 
-/**
- * Shows the results of the quiz by checking the user's answers and displaying the score.
- */
-function showResults() {
-    const answerContainers = quizContainer.querySelectorAll('.answers');
+  function stopTest() {
+    endTime = new Date();
+    const timeTaken = (endTime - startTime) / 1000; // time in seconds
+    const wpm = calculateWPM(timeTaken);
 
-    let numCorrect = 0;
+    displayResults(timeTaken, wpm);
 
-    for (let questionNumber = 0; questionNumber < quizQuestions.length; questionNumber++) {
-        const answerContainer = answerContainers[questionNumber];
-        const selector = `input[name=question${questionNumber}]:checked`;
-        const userAnswer = (answerContainer.querySelector(selector) || {}).value;
+    userInput.disabled = true;
+    retryButton.disabled = false;
+    testStarted = false;
+  }
 
-        if (userAnswer == quizQuestions[questionNumber].correctAnswer) {
-            numCorrect ++;
-            answerContainers[questionNumber].style.color = 'blue';
-        } else {
-            answerContainers[questionNumber].style.color = 'red';
-        }
+  function calculateWPM(timeTaken) {
+    const sampleText = sampleTextDiv.textContent.trim();
+    const userText = userInput.value.trim();
+    const sampleWords = sampleText.split(" ");
+    const userWords = userText.split(" ");
+
+    let correctWords = 0;
+    for (let i = 0; i < userWords.length; i++) {
+      if (userWords[i] === sampleWords[i]) {
+        correctWords++;
+      }
     }
 
-    button.innerHTML = 'Try Again';
-    button.removeEventListener('click', showResults);
-    button.addEventListener('click', resetQuiz);
-}
+    return Math.round((correctWords / timeTaken) * 60);
+  }
 
-function resetQuiz() {
-    buildQuiz();
+  function displayResults(timeTaken, wpm) {
+    timeDisplay.textContent = timeTaken.toFixed(2);
+    wpmDisplay.textContent = wpm;
+    const selectedDifficulty = difficultySelect.value;
+    levelDisplay.textContent =
+      selectedDifficulty.charAt(0).toUpperCase() + selectedDifficulty.slice(1);
+  }
 
-    button.innerHTML = 'Submit Quiz';
-    button.removeEventListener('click', resetQuiz);
-    button.addEventListener('click', showResults);
-}
+  function updateTypingFeedback() {
+    if (!testStarted) {
+      startTime = new Date();
+      testStarted = true;
+      retryButton.disabled = true;
+    }
 
-buildQuiz();
+    const sampleText = sampleTextDiv.textContent.trim();
+    const userText = userInput.value.trim();
+    const sampleWords = sampleText.split(" ");
+    const userWords = userText.split(" ");
 
-button.addEventListener('click', showResults);
+    let feedbackHTML = "";
+
+    for (let i = 0; i < sampleWords.length; i++) {
+      if (userWords[i] === sampleWords[i]) {
+        feedbackHTML += `<span class="correct">${sampleWords[i]}</span> `;
+      } else if (userWords[i]) {
+        feedbackHTML += `<span class="incorrect">${sampleWords[i]}</span> `;
+      } else {
+        feedbackHTML += `<span>${sampleWords[i]}</span> `;
+      }
+    }
+
+    sampleTextDiv.innerHTML = feedbackHTML.trim();
+  }
+
+  function handleEnterKey(event) {
+    if (event.key === "Enter") {
+      stopTest();
+    }
+  }
+
+  function resetTest() {
+    userInput.value = "";
+    userInput.disabled = false;
+    updateSampleText();
+    timeDisplay.textContent = "0";
+    wpmDisplay.textContent = "0";
+    testStarted = false;
+    retryButton.disabled = true;
+  }
+
+  difficultySelect.addEventListener("change", updateSampleText);
+  userInput.addEventListener("input", updateTypingFeedback);
+  userInput.addEventListener("keydown", handleEnterKey);
+  retryButton.addEventListener("click", resetTest);
+
+  // Initialize with a random text from the default difficulty level
+  updateSampleText();
+});
